@@ -6,7 +6,7 @@
       <div class="col-md-12 text-center"></div>
       <TranslateForm
         @translatedEvent="translatedText = $event"
-        @historyEvent="history.push($event)"
+        @historyEvent="history.splice(0, 0, $event)"
       />
       <h1 class="text-success text-center">{{ translatedText }}</h1>
       <SearchHistory :history="history" />

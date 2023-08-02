@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <form @submit="translateIt" class="well">
+    <form @submit="translate" class="well">
       <div class="form-group has-validation">
         <textarea
           v-model="toTranslateText"
@@ -19,10 +19,12 @@
           class="form-control"
           :class="{ 'is-invalid': isValidLang }"
         >
-          <option disabled selected value="">Select a language.</option>
+          <option disabled selected value="">
+            Select the language you want to translate.
+          </option>
           <option
-            v-for="language in languages"
-            :key="language.code"
+            v-for="(language, index) in languages"
+            :key="index"
             :value="language.code"
           >
             {{ language.name }}
@@ -37,7 +39,17 @@
         <strong>Detected Language : {{ detectedLanguage }} </strong>
       </div>
       <br />
-      <button type="submit" class="btn btn-primary btn-block">Translate</button>
+      <button
+        @mouseover="setShowIcon(true)"
+        @mouseleave="setShowIcon(false)"
+        type="submit"
+        class="btn btn-primary btn-block"
+      >
+        <Transition mode="out-in">
+          <span v-if="!showIcon">Translate</span>
+          <i v-else class="fa fa-language"></i>
+        </Transition>
+      </button>
     </form>
   </div>
 </template>
@@ -55,79 +67,81 @@ export default {
       detectedLanguage: "",
       isValidText: false,
       isValidLang: false,
+      showIcon: false,
     };
   },
   props: ["translatedEvent"],
   methods: {
-    translateIt(e) {
+    setShowIcon(value) {
+      this.showIcon = value;
+    },
+    checkError() {
+      this.resetErrors();
+      if (this.toTranslateText === "") {
+        this.isValidText = true;
+        return true;
+      }
+      if (this.translateTo === "") {
+        this.isValidLang = true;
+        return true;
+      }
+      return false;
+    },
+    resetErrors() {
+      this.isValidText = false;
+      this.isValidLang = false;
+    },
+    translate(e) {
       e.preventDefault();
+      if (this.checkError()) return;
       const encodedParams = new URLSearchParams();
       encodedParams.set("source_language", "auto");
       encodedParams.set("target_language", this.translateTo);
       encodedParams.set("text", this.toTranslateText);
+      axios
+        .post(
+          "https://text-translator2.p.rapidapi.com/translate",
+          encodedParams,
+          {
+            headers: {
+              "content-type": "application/x-www-form-urlencoded",
+              "X-RapidAPI-Key": process.env.VUE_APP_API_KEY,
+              "X-RapidAPI-Host": "text-translator2.p.rapidapi.com",
+            },
+          }
+        )
+        .then((response) => {
+          this.translatedText = response.data.data.translatedText;
+          this.detectedLanguage =
+            response.data.data.detectedSourceLanguage.name;
 
-      const options = {
-        method: "POST",
-        url: "https://text-translator2.p.rapidapi.com/translate",
-        headers: {
-          "content-type": "application/x-www-form-urlencoded",
-          "X-RapidAPI-Key":
-            "f13b8f2b1cmshec89c8fa4b56e25p14fe02jsnd6aaefb387bd",
-          "X-RapidAPI-Host": "text-translator2.p.rapidapi.com",
-        },
-        data: encodedParams,
-      };
-      if (this.toTranslateText === "") {
-        this.isValidText = true;
-      } else {
-        this.isValidText = false;
-      }
-      if (this.translateTo === "") {
-        this.isValidLang = true;
-      } else {
-        this.isValidLang = false;
-      }
-      if (this.isValidLang || this.isValidText) {
-        return;
-      } else {
-        axios
-          .request(options)
-          .then((response) => {
-            this.translatedText = response.data.data.translatedText;
-            this.detectedLanguage =
-              response.data.data.detectedSourceLanguage.name;
+          const result = this.languages.find(
+            (language) => language.code === this.translateTo
+          );
+          this.translatedLangName = result.name;
 
-            const result = this.languages.find(
-              (language) => language.code === this.translateTo
-            );
-            this.translatedLangName = result.name;
-
-            this.$emit("translatedEvent", this.translatedText);
-            let history = {
-              from: this.detectedLanguage,
-              to: this.translatedLangName,
-              text: this.toTranslateText,
-              translatedText: this.translatedText,
-            };
-            this.$emit("historyEvent", history);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      }
+          this.$emit("translatedEvent", this.translatedText);
+          let history = {
+            from: this.detectedLanguage,
+            to: this.translatedLangName,
+            text: this.toTranslateText,
+            translatedText: this.translatedText,
+          };
+          this.$emit("historyEvent", history);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     },
   },
   created() {
-    const options = {
-      method: "GET",
-      url: "https://text-translator2.p.rapidapi.com/getLanguages",
-      headers: {
-        "X-RapidAPI-Key": "f13b8f2b1cmshec89c8fa4b56e25p14fe02jsnd6aaefb387bd",
-        "X-RapidAPI-Host": "text-translator2.p.rapidapi.com",
-      },
-    };
     axios
-      .request(options)
+      .get("https://text-translator2.p.rapidapi.com/getLanguages", {
+        headers: {
+          "X-RapidAPI-Key": process.env.VUE_APP_API_KEY,
+          "X-RapidAPI-Host": "text-translator2.p.rapidapi.com",
+        },
+      })
       .then((response) => {
         this.languages = response.data.data.languages;
       })
@@ -145,5 +159,14 @@ export default {
 .invalid-feedback {
   color: #e74c3c;
   font-size: small;
+}
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
