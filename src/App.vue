@@ -8,7 +8,7 @@
         @translatedEvent="translatedText = $event"
         @historyEvent="history.splice(0, 0, $event)"
       />
-      <h1 class="text-success text-center">{{ translatedText }}</h1>
+      <TranslatedArea :translatedText="translatedText" :history="history" />
       <SearchHistory :history="history" />
     </div>
   </div>
@@ -17,6 +17,7 @@
 <script>
 import TranslateForm from "./components/TranslateForm.vue";
 import SearchHistory from "./components/SearchHistory.vue";
+import TranslatedArea from "./components/TranslatedArea.vue";
 export default {
   data() {
     return {
@@ -27,6 +28,7 @@ export default {
   components: {
     TranslateForm,
     SearchHistory,
+    TranslatedArea,
   },
 };
 </script>

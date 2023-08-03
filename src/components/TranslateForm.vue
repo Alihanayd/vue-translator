@@ -1,57 +1,55 @@
 <template>
-  <div class="container">
-    <form @submit="translate" class="well">
-      <div class="form-group has-validation">
-        <textarea
-          v-model="toTranslateText"
-          cols="30"
-          rows="5"
-          class="form-control"
-          placeholder="Write a word or sentence to translate"
-          :class="{ 'is-invalid': isValidText }"
-        ></textarea>
-        <div class="invalid-feedback" v-if="isValidText">
-          Please enter a text to translate.
-        </div>
-        <label for=""></label>
-        <select
-          v-model="translateTo"
-          class="form-control"
-          :class="{ 'is-invalid': isValidLang }"
-        >
-          <option disabled selected value="">
-            Select the language you want to translate.
-          </option>
-          <option
-            v-for="(language, index) in languages"
-            :key="index"
-            :value="language.code"
-          >
-            {{ language.name }}
-          </option>
-        </select>
-        <div class="invalid-feedback" v-if="isValidLang">
-          Please select a language.
-        </div>
+  <form @submit="translate" class="well">
+    <div class="form-group has-validation">
+      <textarea
+        v-model="toTranslateText"
+        cols="30"
+        rows="5"
+        class="form-control"
+        placeholder="Write a word or sentence to translate"
+        :class="{ 'is-invalid': isValidText }"
+      ></textarea>
+      <div class="invalid-feedback" v-if="isValidText">
+        Please enter a text to translate.
       </div>
-      <br />
-      <div class="text-left" v-if="translatedLangName">
-        <strong>Detected Language : {{ detectedLanguage }} </strong>
-      </div>
-      <br />
-      <button
-        @mouseover="setShowIcon(true)"
-        @mouseleave="setShowIcon(false)"
-        type="submit"
-        class="btn btn-primary btn-block"
+      <label for=""></label>
+      <select
+        v-model="translateTo"
+        class="form-control"
+        :class="{ 'is-invalid': isValidLang }"
       >
-        <Transition mode="out-in">
-          <span v-if="!showIcon">Translate</span>
-          <i v-else class="fa fa-language"></i>
-        </Transition>
-      </button>
-    </form>
-  </div>
+        <option disabled selected value="">
+          Select the language you want to translate.
+        </option>
+        <option
+          v-for="(language, index) in languages"
+          :key="index"
+          :value="language.code"
+        >
+          {{ language.name }}
+        </option>
+      </select>
+      <div class="invalid-feedback" v-if="isValidLang">
+        Please select a language.
+      </div>
+    </div>
+    <br />
+    <div class="text-left" v-if="translatedLangName">
+      <strong>Detected Language : {{ detectedLanguage }} </strong>
+    </div>
+    <br />
+    <button
+      @mouseover="setShowIcon(true)"
+      @mouseleave="setShowIcon(false)"
+      type="submit"
+      class="btn btn-primary btn-block"
+    >
+      <Transition mode="out-in">
+        <span v-if="!showIcon">Translate</span>
+        <i v-else class="fa fa-language"></i>
+      </Transition>
+    </button>
+  </form>
 </template>
 
 <script>
